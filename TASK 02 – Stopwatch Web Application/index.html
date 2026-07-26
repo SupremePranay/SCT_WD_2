@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronly — Precision Stopwatch</title>
+  <meta name="description" content="A premium, glowing, glassmorphism stopwatch built with vanilla JS.">
+
+  <!-- Space Mono for the numeric readout (tabular figures, instrument feel) -->
+  <!-- Manrope for UI labels and buttons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Animated gradient backdrop, purely decorative -->
+  <div class="bg-gradient" aria-hidden="true"></div>
+
+  <!-- Dark / Light mode toggle -->
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark and light mode" title="Toggle theme">
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="4.5"></circle>
+      <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"></path>
+    </svg>
+  </button>
+
+  <main class="stage">
+    <div class="card" id="card">
+
+      <p class="eyebrow">Precision Stopwatch</p>
+
+      <!-- ============= CIRCULAR GLOWING DIAL ============= -->
+      <div class="dial-wrap">
+        <svg class="dial" viewBox="0 0 260 260" aria-hidden="true">
+          <!-- Static tick marks around the ring -->
+          <g class="ticks" id="ticks"></g>
+
+          <!-- Track (base ring) -->
+          <circle class="dial-track" cx="130" cy="130" r="110"></circle>
+
+          <!-- Progress arc: sweeps once per minute, glows while running -->
+          <circle class="dial-progress" id="dialProgress" cx="130" cy="130" r="110"></circle>
+        </svg>
+
+        <!-- Digital readout, centered inside the dial -->
+        <div class="readout" id="readout" role="timer" aria-live="off">
+          <span class="seg" id="hh">00</span><span class="colon">:</span><span class="seg" id="mm">00</span><span class="colon">:</span><span class="seg" id="ss">00</span><span class="ms" id="ms">.000</span>
+        </div>
+        <p class="status-label" id="statusLabel">Ready</p>
+      </div>
+
+      <!-- ============= CONTROLS ============= -->
+      <div class="controls">
+        <button class="btn btn-ghost" id="resetBtn" title="Reset (R)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 3 6.7"></path><path d="M3 4v5h5"></path></svg>
+          Reset
+        </button>
+
+        <!-- Primary toggle button: cycles Start → Pause → Resume → Pause ... -->
+        <button class="btn btn-primary" id="toggleBtn" title="Start / Pause (Space)">
+          <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>
+          <span id="toggleLabel">Start</span>
+        </button>
+
+        <button class="btn btn-ghost" id="lapBtn" title="Add Lap (L)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+          Lap
+        </button>
+      </div>
+
+      <!-- ============= LAP HISTORY ============= -->
+      <div class="laps-section">
+        <div class="laps-header">
+          <h2>Laps</h2>
+          <span class="laps-count" id="lapsCount">0</span>
+        </div>
+        <ul class="laps-list" id="lapsList">
+          <!-- Empty state; replaced by lap items via JS -->
+          <li class="laps-empty" id="lapsEmpty">No laps recorded yet — press Lap while running.</li>
+        </ul>
+      </div>
+
+      <p class="shortcuts-hint">
+        <kbd>Space</kbd> Start / Pause &nbsp;·&nbsp; <kbd>L</kbd> Lap &nbsp;·&nbsp; <kbd>R</kbd> Reset
+      </p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

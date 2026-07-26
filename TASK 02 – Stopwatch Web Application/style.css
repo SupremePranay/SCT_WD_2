@@ -1,0 +1,414 @@
+/* ============================================================
+   CHRONLY — Premium Stopwatch Stylesheet
+   Instrument-panel aesthetic: dark gunmetal + amber glow,
+   circular dial with a sweeping progress arc.
+   ============================================================ */
+
+/* ---------- 1. DESIGN TOKENS ---------- */
+:root {
+  /* Dark theme (default) */
+  --bg-1: #0a0c11;
+  --bg-2: #14171f;
+  --accent: #ff7a45;        /* amber glow — primary */
+  --accent-soft: #ffb385;
+  --accent-2: #35d0ff;      /* cool cyan — secondary / laps */
+  --text-primary: #f3f4f8;
+  --text-muted: #9aa0b4;
+  --text-faint: #5b6178;
+
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-bg-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --track-color: rgba(255, 255, 255, 0.09);
+
+  --danger: #ff5d6c;
+
+  --font-display: "Space Mono", monospace;
+  --font-ui: "Manrope", sans-serif;
+
+  --radius-xl: 32px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --transition: 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Light theme overrides — toggled via .light class on <body> */
+body.light {
+  --bg-1: #f2efe9;
+  --bg-2: #e8e3da;
+  --accent: #e8632c;
+  --accent-soft: #ffb385;
+  --accent-2: #0091b8;
+  --text-primary: #23241f;
+  --text-muted: #5b5c54;
+  --text-faint: #8b8c82;
+
+  --glass-bg: rgba(255, 255, 255, 0.5);
+  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(35, 36, 31, 0.1);
+  --track-color: rgba(35, 36, 31, 0.08);
+}
+
+/* ---------- 2. RESET ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  background: var(--bg-1);
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+ul { list-style: none; }
+svg { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+button:focus-visible,
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* ---------- 3. ANIMATED GRADIENT BACKGROUND ---------- */
+.bg-gradient {
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 122, 69, 0.20), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(53, 208, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(255, 122, 69, 0.12), transparent 50%),
+    var(--bg-1);
+  background-size: 200% 200%;
+  animation: gradient-drift 16s ease-in-out infinite alternate;
+  transition: background-color var(--transition);
+}
+@keyframes gradient-drift {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* ---------- 4. THEME TOGGLE ---------- */
+.theme-toggle {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 10;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  transition: transform var(--transition), background var(--transition);
+}
+.theme-toggle:hover { transform: scale(1.08) rotate(10deg); background: var(--glass-bg-strong); }
+.theme-toggle svg { width: 20px; height: 20px; position: absolute; transition: opacity var(--transition), transform var(--transition); }
+.icon-moon { opacity: 1; transform: scale(1); }
+.icon-sun { opacity: 0; transform: scale(0.5) rotate(-40deg); }
+body.light .icon-moon { opacity: 0; transform: scale(0.5) rotate(40deg); }
+body.light .icon-sun { opacity: 1; transform: scale(1) rotate(0); }
+
+/* ---------- 5. LAYOUT ---------- */
+.stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 18px;
+}
+
+/* ---------- 6. GLASS CARD ---------- */
+.card {
+  width: 100%;
+  max-width: 460px;
+  padding: 38px 30px 30px;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+
+/* ---------- 7. CIRCULAR GLOWING DIAL ---------- */
+.dial-wrap {
+  position: relative;
+  width: min(280px, 74vw);
+  height: min(280px, 74vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.dial { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+
+.dial-track {
+  fill: none;
+  stroke: var(--track-color);
+  stroke-width: 6;
+}
+
+.dial-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255, 122, 69, 0.55));
+  transition: stroke var(--transition);
+}
+
+/* Ticks are positioned via JS-generated transforms; style them here */
+.ticks line {
+  stroke: var(--text-faint);
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+.ticks line.tick-major {
+  stroke: var(--text-muted);
+  stroke-width: 2.5;
+  opacity: 0.8;
+}
+
+/* Glow pulse applied to the whole dial while the stopwatch is running */
+.dial-wrap.running .dial-progress {
+  filter: drop-shadow(0 0 12px rgba(255, 122, 69, 0.85));
+  animation: pulse-glow 1.6s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 122, 69, 0.7)); }
+  50%      { filter: drop-shadow(0 0 20px rgba(255, 122, 69, 1)); }
+}
+
+/* Digital readout, centered inside the ring */
+.readout {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 6.2vw, 2rem);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.colon { opacity: 0.4; margin: 0 1px; }
+.ms { font-size: 0.55em; color: var(--text-muted); margin-left: 2px; }
+
+.status-label {
+  position: absolute;
+  bottom: 18%;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: color var(--transition);
+}
+.dial-wrap.running .status-label { color: var(--accent); }
+.dial-wrap.paused .status-label { color: var(--accent-2); }
+
+/* ---------- 8. CONTROLS ---------- */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 100px;
+  transition: transform var(--transition), background var(--transition),
+              box-shadow var(--transition), color var(--transition), opacity var(--transition);
+}
+.btn svg { width: 16px; height: 16px; }
+.btn:active { transform: scale(0.94); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+.btn-ghost {
+  padding: 14px 20px;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+.btn-ghost:hover { color: var(--text-primary); background: var(--glass-bg-strong); transform: translateY(-2px); }
+
+/* Primary toggle button — larger, glowing, circular */
+.btn-primary {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  flex-direction: column;
+  color: #120801;
+  background: linear-gradient(150deg, var(--accent-soft), var(--accent));
+  box-shadow: 0 10px 30px rgba(255, 122, 69, 0.45);
+  font-size: 0.68rem;
+  gap: 4px;
+}
+.btn-primary:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 16px 40px rgba(255, 122, 69, 0.6); }
+.btn-primary svg { width: 20px; height: 20px; }
+
+/* Swap play / pause icon based on state, controlled via .is-running class */
+.icon-pause { display: none; }
+.btn-primary.is-running .icon-play { display: none; }
+.btn-primary.is-running .icon-pause { display: block; }
+.btn-primary.is-running {
+  background: linear-gradient(150deg, #ffe1a8, var(--accent));
+  animation: primary-pulse 1.6s ease-in-out infinite;
+}
+@keyframes primary-pulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(255, 122, 69, 0.45); }
+  50%      { box-shadow: 0 14px 42px rgba(255, 122, 69, 0.75); }
+}
+
+/* Ripple element injected by JS on click, shared by all buttons */
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple-anim 0.55s ease-out;
+}
+@keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
+
+/* ---------- 9. LAP HISTORY ---------- */
+.laps-section { width: 100%; }
+
+.laps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.laps-header h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.laps-count {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--glass-bg-strong);
+  color: var(--accent-2);
+}
+
+.laps-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--glass-border);
+}
+body.light .laps-list { background: rgba(0, 0, 0, 0.03); }
+
+/* Custom slim scrollbar for the lap list */
+.laps-list::-webkit-scrollbar { width: 6px; }
+.laps-list::-webkit-scrollbar-track { background: transparent; }
+.laps-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+.laps-empty {
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.lap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+  animation: lap-insert 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lap-item:last-child { border-bottom: none; }
+
+@keyframes lap-insert {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lap-item .lap-index { color: var(--text-faint); width: 46px; flex-shrink: 0; }
+.lap-item .lap-split { color: var(--text-muted); flex: 1; text-align: center; }
+.lap-item .lap-total { color: var(--text-primary); text-align: right; }
+
+/* Latest lap is visually highlighted */
+.lap-item.latest {
+  background: linear-gradient(90deg, rgba(255, 122, 69, 0.14), transparent);
+  border-left: 3px solid var(--accent);
+}
+.lap-item.latest .lap-index { color: var(--accent); font-weight: 700; }
+.lap-item.latest .lap-total { color: var(--accent); font-weight: 700; }
+
+/* ---------- 10. SHORTCUT HINT ---------- */
+.shortcuts-hint {
+  margin-top: 22px;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+kbd {
+  font-family: var(--font-display);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+}
+
+/* ---------- 11. RESPONSIVE ---------- */
+@media (max-width: 420px) {
+  .card { padding: 30px 20px 24px; }
+  .controls { gap: 10px; }
+  .btn-ghost { padding: 12px 14px; font-size: 0.8rem; }
+  .btn-primary { width: 68px; height: 68px; }
+}
